@@ -1,0 +1,56 @@
+Vagrant.configure("2") do |config|
+    # Configuração da VM1 - Servidor Web
+    config.vm.box = "generic/ubuntu2004"
+
+    config.vm.define "vm1" do |vm1|
+      vm1.vm.hostname = "vm1"
+      vm1.vm.network "private_network", type: "static", ip: "192.168.50.10"
+      vm1.vm.provider "virtualbox" do |vb|
+        vb.memory = "512"
+      end
+      #vm1.vm.synced_folder "/var/www/html", "/var/www/html"
+      vm1.vm.synced_folder "C:\\var\\www\\html", "/var/www/html"
+      vm1.vm.provision "shell", inline: <<-SCRIPT
+        # Instalação do Apache
+        sudo apt update
+        sudo apt install net-tools
+        sudo apt install -y apache2
+        sudo ip route add default via 192.168.50.12
+      SCRIPT
+    end
+  
+    # Configuração da VM2 - Servidor de Banco de Dados
+    config.vm.define "vm2" do |vm2|
+      vm2.vm.hostname = "vm2"
+      vm2.vm.network "private_network", type: "static", ip: "192.168.50.11"
+      vm2.vm.provider "virtualbox" do |vb|
+        vb.memory = "512"
+      end
+      vm2.vm.provision "shell", inline: <<-SCRIPT
+        # Instalação do MySQL
+        sudo apt update
+        sudo apt install net-tools
+        sudo apt install -y mysql-server
+        sudo ip route add default via 192.168.50.12
+      SCRIPT
+    end
+  
+    # Configuração da VM3 - Gateway
+    config.vm.define "vm3" do |vm3|
+      vm3.vm.hostname = "vm3"
+      vm3.vm.network "private_network", type: "static", ip: "192.168.50.12"
+      vm3.vm.provider "virtualbox" do |vb|
+        vb.memory = "512"
+      end
+      #sudo iptables-save > /etc/iptables/rules.v4
+      #sudo apt install iptables-persistent -y
+      vm3.vm.synced_folder "D:/Dev/laboratorioRedes", "/home/vagrant"
+      vm3.vm.provision "shell", inline: <<-SCRIPT
+        # Configuração do roteamento
+        sudo apt update
+        sudo apt install net-tools
+        sudo chmod +x /home/vagrant/script.sh
+      SCRIPT
+    end
+  end
+  
